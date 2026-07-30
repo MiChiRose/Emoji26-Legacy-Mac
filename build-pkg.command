@@ -53,9 +53,13 @@ cp -R "$ROOT/build/Emoji26Picker.app" "$APPDIR/Emoji26Picker.app"
 cp "$ROOT/uninstall.command" "$APPDIR/uninstall.command"
 cp "$ROOT/verify.command" "$APPDIR/verify.command"
 cp "$ROOT/manifest" "$APPDIR/manifest"
-clang -arch x86_64 -mmacosx-version-min=10.8 \
-  -framework Cocoa -framework CoreText \
-  "$ROOT/tools/ctprobe.m" -o "$TOOLSDIR/ctprobe"
+if [ -x "$ROOT/prebuilt/target/ctprobe" ]; then
+  cp "$ROOT/prebuilt/target/ctprobe" "$TOOLSDIR/ctprobe"
+else
+  clang -arch x86_64 -mmacosx-version-min=10.8 \
+    -framework Cocoa -framework CoreText \
+    "$ROOT/tools/ctprobe.m" -o "$TOOLSDIR/ctprobe"
+fi
 chmod 755 "$TOOLSDIR/ctprobe" "$APPDIR/uninstall.command" "$APPDIR/verify.command"
 chmod 644 "$PKGROOT/Library/Fonts/Emoji26 Additions.ttf" "$APPDIR/manifest"
 sed "s/__TARGET_OS__/$TARGET_OS/g" \

@@ -6,5 +6,9 @@ font=$1
 [ -f "$font" ] || { echo "font not found: $font" >&2; exit 66; }
 ROOT=`CDPATH= cd -- "$(dirname -- "$0")/.." && pwd`
 mkdir -p "$ROOT/build"
-cc "$ROOT/tools/sfnt-audit.c" -o "$ROOT/build/sfnt-audit"
+if [ -x "$ROOT/prebuilt/host/sfnt-audit" ]; then
+  cp "$ROOT/prebuilt/host/sfnt-audit" "$ROOT/build/sfnt-audit"
+else
+  cc "$ROOT/tools/sfnt-audit.c" -o "$ROOT/build/sfnt-audit"
+fi
 "$ROOT/build/sfnt-audit" "$font"

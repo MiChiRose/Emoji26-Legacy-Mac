@@ -15,8 +15,12 @@ LIST="$ROOT/payload/emoji26-additions.txt"
 mkdir -p "$MACOS" "$RESOURCES"
 cp "$ROOT/picker/Info.plist" "$APP/Contents/Info.plist"
 cp "$LIST" "$RESOURCES/emoji26-additions.txt"
-clang -arch x86_64 -mmacosx-version-min=10.8 -framework Cocoa \
-  "$ROOT/EmojiPicker.m" -o "$MACOS/Emoji26Picker"
+if [ -x "$ROOT/prebuilt/target/Emoji26Picker" ]; then
+  cp "$ROOT/prebuilt/target/Emoji26Picker" "$MACOS/Emoji26Picker"
+else
+  clang -arch x86_64 -mmacosx-version-min=10.8 -framework Cocoa \
+    "$ROOT/EmojiPicker.m" -o "$MACOS/Emoji26Picker"
+fi
 chmod 755 "$MACOS/Emoji26Picker"
 
 echo "Built $APP for Intel OS X 10.8+."

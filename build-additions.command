@@ -28,9 +28,19 @@ case "$TARGET_OS" in
 esac
 
 mkdir -p "$ROOT/build" "$ROOT/payload"
-cc "$ROOT/tools/cmap-diff.c" -o "$ROOT/build/cmap-diff"
+if [ -x "$ROOT/prebuilt/host/cmap-diff" ]; then
+  cp "$ROOT/prebuilt/host/cmap-diff" "$ROOT/build/cmap-diff"
+else
+  cc "$ROOT/tools/cmap-diff.c" -o "$ROOT/build/cmap-diff"
+fi
 "$ROOT/build/cmap-diff" "$DONOR" "$LEGACY" > "$ROOT/build/raw-cmap-additions.txt"
-cc "$ROOT/tools/font-additions-builder.c" -o "$ROOT/build/font-additions-builder"
+if [ -x "$ROOT/prebuilt/host/font-additions-builder" ]; then
+  cp "$ROOT/prebuilt/host/font-additions-builder" \
+    "$ROOT/build/font-additions-builder"
+else
+  cc "$ROOT/tools/font-additions-builder.c" \
+    -o "$ROOT/build/font-additions-builder"
+fi
 "$ROOT/build/font-additions-builder" \
   "$DONOR" \
   "$ROOT/build/raw-cmap-additions.txt" \
@@ -38,8 +48,12 @@ cc "$ROOT/tools/font-additions-builder.c" -o "$ROOT/build/font-additions-builder
   "$ROOT/payload/emoji26-additions.txt"
 sh "$ROOT/tools/emoji-table-audit.sh" "$ROOT/payload/Emoji26 Additions.ttf" |
   tee "$ROOT/build/additions-table-audit.txt"
-clang -framework Cocoa -framework CoreText \
-  "$ROOT/tools/ctprobe.m" -o "$ROOT/build/ctprobe"
+if [ -x "$ROOT/prebuilt/host/ctprobe" ]; then
+  cp "$ROOT/prebuilt/host/ctprobe" "$ROOT/build/ctprobe"
+else
+  clang -framework Cocoa -framework CoreText \
+    "$ROOT/tools/ctprobe.m" -o "$ROOT/build/ctprobe"
+fi
 "$ROOT/build/ctprobe" \
   "$ROOT/payload/Emoji26 Additions.ttf" \
   "Emoji26 Additions" \
