@@ -35,5 +35,9 @@ macOS — публиковать или коммитить этот `.pkg` не�
 Статический разбор пакета MavericksForever и отличия принятого здесь подхода:
 [`research/MAVERICKSFOREVER.md`](research/MAVERICKSFOREVER.md).
 
+Process-local smoke test на реальном OS X 10.9.5 подтвердил загрузку
+supplemental-шрифта и цветную `sbix`-отрисовку трёх новых emoji без установки:
+[`research/TEST-MAVERICKS-10.9.5.md`](research/TEST-MAVERICKS-10.9.5.md).
+
 `build-pkg.command` собирает локальный `.pkg` после создания payload. Source-only
 архив не содержит Apple font binaries.
