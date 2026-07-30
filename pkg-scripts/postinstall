@@ -1,0 +1,40 @@
+#!/bin/sh
+set -eu
+
+STATE="/Library/Application Support/EmojiLegacyPatch"
+PENDING="$STATE/pending-backup"
+DEST="/Library/Fonts/Emoji26 Additions.ttf"
+MANIFEST="/Applications/Emoji 26 Additions/manifest"
+
+[ -f "$PENDING" ] || {
+  echo "Missing preinstall state." >&2
+  exit 1
+}
+
+STAMP=`cat "$PENDING"`
+BACKUP="$STATE/backups/$STAMP"
+EXPECTED=`awk -F= '$1=="additions_font_sha256" {print $2}' "$MANIFEST"`
+ACTUAL=`shasum -a 256 "$DEST" | awk '{print $1}'`
+
+if [ -z "$EXPECTED" ] || [ "$EXPECTED" != "$ACTUAL" ]; then
+  PREVIOUS=`awk -F= '$1=="previous" {print $2}' "$BACKUP/metadata.txt"`
+  if [ "$PREVIOUS" = present ]; then
+    TMP="/Library/Fonts/.Emoji26-Package-Rollback.$$"
+    cp "$BACKUP/Emoji26 Additions.ttf" "$TMP"
+    chown root:wheel "$TMP"
+    chmod 644 "$TMP"
+    mv "$TMP" "$DEST"
+  else
+    mv "$DEST" "$BACKUP/rejected-Emoji26-Additions.ttf"
+  fi
+  echo "Installed font hash differs from manifest; rollback completed." >&2
+  exit 1
+fi
+
+chown root:wheel "$DEST"
+chmod 644 "$DEST"
+echo "$STAMP" > "$STATE/current-backup"
+rm -f "$PENDING"
+
+echo "Emoji26 Additions installed. Restart before verification."
+exit 0

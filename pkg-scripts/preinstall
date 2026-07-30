@@ -1,0 +1,41 @@
+#!/bin/sh
+set -eu
+
+DEST="/Library/Fonts/Emoji26 Additions.ttf"
+STATE="/Library/Application Support/EmojiLegacyPatch"
+
+[ "`uname -m`" = x86_64 ] || {
+  echo "Emoji26 Additions requires Intel x86_64." >&2
+  exit 1
+}
+
+VERSION=`sw_vers -productVersion`
+case "$VERSION" in
+  10.8.5|10.9.5) ;;
+  *)
+    echo "Supported only on OS X 10.8.5 or 10.9.5; found $VERSION." >&2
+    exit 1
+    ;;
+esac
+
+STAMP=`date +%Y%m%d-%H%M%S`
+BACKUP="$STATE/backups/$STAMP"
+mkdir -p "$BACKUP"
+
+if [ -f "$DEST" ]; then
+  {
+    echo "previous=present"
+    echo "path=$DEST"
+    shasum -a 256 "$DEST"
+    stat -f 'owner=%Su group=%Sg mode=%Lp bytes=%z' "$DEST"
+  } > "$BACKUP/metadata.txt"
+  cp -p "$DEST" "$BACKUP/Emoji26 Additions.ttf"
+else
+  {
+    echo "previous=absent"
+    echo "path=$DEST"
+  } > "$BACKUP/metadata.txt"
+fi
+
+echo "$STAMP" > "$STATE/pending-backup"
+exit 0

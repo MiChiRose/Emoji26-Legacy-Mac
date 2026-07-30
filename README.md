@@ -24,10 +24,14 @@ The command computes only code points absent from the stock legacy font. It
 does not copy the full donor TTC into payload. Third-party mirrors are rejected
 by policy.
 
-Installation remains blocked until the separately named
-`Emoji26 Additions.ttf` has been generated and verified. It then installs only
-that supplemental font under `/Library/Fonts`, without changing the stock
-Apple font or Character Palette.
+The native builder extracts the first donor face, replaces `cmap` and `name`,
+keeps `sbix`, and emits a separately named `Emoji26 Additions.ttf`. CoreText
+then verifies representative new glyphs and confirms that legacy U+1F600 is
+not exposed by the supplemental font.
+
+`build-pkg.command` produces one private local installer containing the
+supplemental font, x86_64 verifier, and AppKit picker. Because that package
+contains derived Apple glyph data, it must not be committed or published.
 
 Run `./uninstall.command` and type `RESTORE` to roll back. Restart afterward rather than deleting caches.
 
