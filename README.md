@@ -40,7 +40,7 @@ human testing.
 
 ## Requirements
 
-- A modern Mac with Xcode Command Line Tools for building.
+- A modern Mac running macOS 11 or newer for the downloadable builder.
 - A user-owned macOS 26 `Apple Color Emoji.ttc`, copied from an installed system
   or an official Apple installer.
 - The unmodified stock Apple Color Emoji font from the exact target OS.
@@ -48,6 +48,28 @@ human testing.
   `10.8.5`, `10.9.5`, `10.10.5`, `10.11.6`, `10.12.6`, or `10.13.6`.
 
 Do not use third-party font mirrors or unknown binaries.
+
+## Easiest path: downloadable builder
+
+Download `Emoji26-Installer-Builder-0.2.0-alpha.1.zip` from the GitHub
+prerelease, unpack it, and double-click `Make Emoji Installer.command`.
+If Gatekeeper shows a warning for the unsigned research build, Control-click
+the command, choose **Open**, and confirm only if the downloaded ZIP checksum
+matches the accompanying `.sha256` asset.
+
+The builder asks for:
+
+1. Your macOS 26 `Apple Color Emoji.ttc`.
+2. The untouched stock Apple Color Emoji font from the exact old target OS.
+3. The exact target OS version.
+
+It then creates a personal `.pkg` locally and reveals it in Finder. The
+download contains only this project's open-source code and compiled tools. It
+contains no Apple fonts, performs no upload, and installs nothing on the build
+Mac. Xcode, Python, and Homebrew are not required for the downloadable builder.
+
+The resulting personal `.pkg` does contain derived Apple glyph data. Keep it
+for your own machines and do not redistribute it.
 
 ## Build
 
@@ -61,6 +83,8 @@ Example for Mavericks 10.9.5:
 
 ./build-pkg.command
 ```
+
+Building directly from a Git checkout requires Xcode Command Line Tools.
 
 The result is
 `dist/Emoji26-Additions-0.2.0-macos10.9.5.pkg`. It contains derived Apple glyph
@@ -111,6 +135,8 @@ alone is not a rendering pass.
 - No disabling system protections.
 - Exact paths only; no recursive deletion or broad globs.
 - Local package generation only; Apple font binaries are Git-ignored.
+- The published bootstrap archive is scanned to reject `.ttc`, `.ttf`, `.otf`,
+  and `.pkg` entries before release.
 
 The design was informed by a static review of
 [Updated Mavericks Emojis](https://github.com/Wowfunhappy/Updated-Mavericks-Emojis)
