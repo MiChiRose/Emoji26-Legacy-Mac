@@ -15,13 +15,14 @@ static int shapedOne(CTFontRef font, const UniChar *chars, CFIndex count) {
 }
 int main(int argc, const char *argv[]) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    if (argc != 2) { fprintf(stderr, "usage: ctprobe FONT\n"); return 64; }
+    if (argc < 2 || argc > 3) { fprintf(stderr, "usage: ctprobe FONT [FAMILY]\n"); return 64; }
     NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:argv[1]]];
+    NSString *fontFamily = argc == 3 ? [NSString stringWithUTF8String:argv[2]] : @"Apple Color Emoji";
     CFErrorRef error = NULL;
     if (!CTFontManagerRegisterFontsForURL((CFURLRef)url, kCTFontManagerScopeProcess, &error)) {
         fprintf(stderr, "CoreText registration failed\n"); if (error) CFRelease(error); return 1;
     }
-    CTFontDescriptorRef desc = CTFontDescriptorCreateWithAttributes((CFDictionaryRef)[NSDictionary dictionaryWithObjectsAndKeys:url,(id)kCTFontURLAttribute,@"Apple Color Emoji",(id)kCTFontFamilyNameAttribute,nil]);
+    CTFontDescriptorRef desc = CTFontDescriptorCreateWithAttributes((CFDictionaryRef)[NSDictionary dictionaryWithObjectsAndKeys:url,(id)kCTFontURLAttribute,fontFamily,(id)kCTFontFamilyNameAttribute,nil]);
     CTFontRef font = CTFontCreateWithFontDescriptor(desc, 24, NULL);
     const UniChar single[] = { 0xD83E, 0xDEE8 }; /* U+1FAE8 */
     const UniChar skin[] = { 0xD83D, 0xDC4D, 0xD83C, 0xDFFD };

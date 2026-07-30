@@ -2,6 +2,12 @@
 
 Independent project for testing whether a user-owned modern `Apple Color Emoji.ttc` can work on **OS X 10.8.5/10.9.5, Intel x86_64**. It contains no Apple font binaries, no downloads, and never disables platform protections.
 
+Development now follows an **additive-only** design. The stock system emoji
+font is not replaced. `build-additions.command` compares the user-supplied
+macOS 26 `cmap` with the stock legacy font and produces only the missing
+code-point set. See the static
+[MavericksForever package review](research/MAVERICKSFOREVER.md).
+
 ## Honest compatibility boundary
 
 The project does **not** claim macOS 26 compatibility until `build-payload.command` and `verify.command` pass on each target OS and a human records actual colored rendering. A modern TTC may use tables or bitmap encodings unreadable by old CoreText. The portable table audit reports `sbix`, `cmap`, and `GSUB`; the CoreText probe rejects a font whose required characters cannot be mapped. It is coverage evidence, not proof that old CoreText applies all GSUB/ZWJ substitutions.
@@ -10,13 +16,18 @@ No lossless, legally redistributable general converter from Apple Color Emoji to
 
 ## Source and build
 
-On each target Mac, use only a font copied from a macOS 26 volume you own:
+Use only fonts copied from macOS installations you own:
 
-`./build-payload.command --font "/Volumes/Your macOS 26/System/Library/Fonts/Apple Color Emoji.ttc"`
+`./build-payload.command --font "/Volumes/Your macOS 26/System/Library/Fonts/Apple Color Emoji.ttc" --legacy-font "/path/to/stock/Apple Color Emoji.ttf"`
 
-The `--macos-root` alternative accepts a mounted user-owned system volume. `--installer` deliberately does not automate extraction: mount an official Apple installer yourself and pass its verified font path. Third-party mirrors are rejected by policy, not used by this repository.
+The command computes only code points absent from the stock legacy font. It
+does not copy the full donor TTC into payload. Third-party mirrors are rejected
+by policy.
 
-Run `./verify.command` before `./install.command`. Installation prints its exact one-file change, checks 10.8.5/10.9.5 and x86_64, hashes the payload, checks space, requires typing `INSTALL`, backs up file/hash/owner/group/mode, stages beside the destination, and uses `mv` for replacement. It does not change Character Palette resources.
+Installation remains blocked until the separately named
+`Emoji26 Additions.ttf` has been generated and verified. It then installs only
+that supplemental font under `/Library/Fonts`, without changing the stock
+Apple font or Character Palette.
 
 Run `./uninstall.command` and type `RESTORE` to roll back. Restart afterward rather than deleting caches.
 
