@@ -16,10 +16,15 @@ points. Полный TTC MavericksForever не используется как p
 
 1. Только read-only: зафиксируйте `sw_vers`, `uname -m`, пути Character Palette и результаты `./verify.command`.
 2. Получите donor исключительно с собственного тома macOS 26 и штатный legacy font с принадлежащей вам старой ОС. Выполните `./build-payload.command --font "/Volumes/Имя/System/Library/Fonts/Apple Color Emoji.ttc" --legacy-font "/путь/Apple Color Emoji.ttf"`. Полный donor TTC в payload не копируется. Зеркала и неизвестные бинарники запрещены.
-3. Сборка вычисляет только отсутствующие code points. Пока отдельный `Emoji26 Additions.ttf` не построен и не прошёл CoreText-проверку, установка заблокирована.
+3. Сборка вычисляет отсутствующие code points, исключает служебные ASCII/ZWJ/variation/modifier/tag mappings, извлекает первый TTC face, заменяет `cmap` и `name`, сохраняет `sbix` и создаёт отдельный `Emoji26 Additions.ttf`. Затем CoreText проверяет новые glyphs и отсутствие старого `U+1F600`.
 4. После валидации запустите `./install.command` и введите `ADDITIONS`. Скрипт устанавливает только `/Library/Fonts/Emoji26 Additions.ttf`; системный Apple font и Character Palette не изменяются.
 5. Перезагрузите Mac и вручную проверьте в TextEdit: `🫨`, `👍🏽`, `🇺🇦`, `👨‍👩‍👧`, `👩‍⚕️`, `❤️`. Убедитесь, что TextEdit и Character Palette не падают. Успешная установка не равна успешному рендерингу.
 6. Откат: `./uninstall.command`, введите `REMOVE-ADDITIONS`, затем перезагрузите. Скрипт не удаляет cache-каталоги и не трогает Apple font.
+
+Для создания одного приватного установочного файла выполните
+`./build-pkg.command`. Результат `dist/Emoji26-Additions-0.2.0.pkg` содержит
+derived Apple glyph data и предназначен только владельцу исходной установки
+macOS — публиковать или коммитить этот `.pkg` нельзя.
 
 ## Character Palette
 
@@ -30,4 +35,5 @@ points. Полный TTC MavericksForever не используется как p
 Статический разбор пакета MavericksForever и отличия принятого здесь подхода:
 [`research/MAVERICKSFOREVER.md`](research/MAVERICKSFOREVER.md).
 
-`build-pkg.command` может собрать локальный `.pkg` только после локальной сборки payload; перед публикацией проверьте пакет и исключите шрифт из репозитория/архива исходников.
+`build-pkg.command` собирает локальный `.pkg` после создания payload. Source-only
+архив не содержит Apple font binaries.
