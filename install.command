@@ -14,15 +14,18 @@ fail() {
   exit 1
 }
 
-[ "`uname -m`" = x86_64 ] || fail "Intel x86_64 is required."
-VER=`sw_vers -productVersion`
-case "$VER" in
-  10.8.5|10.9.5) ;;
-  *) fail "Supported only on 10.8.5 or 10.9.5; found $VER" ;;
-esac
-
 [ -f "$FONT" ] || fail "Additive font is not built: $FONT"
 [ -f "$MANIFEST" ] || fail "Manifest is missing."
+
+[ "`uname -m`" = x86_64 ] || fail "Intel x86_64 is required."
+VER=`sw_vers -productVersion`
+TARGET_OS=`awk -F= '$1=="target_os" {print $2}' "$MANIFEST"`
+case "$TARGET_OS" in
+  10.8.5|10.9.5|10.10.5|10.11.6|10.12.6|10.13.6) ;;
+  *) fail "Manifest contains unsupported target OS: $TARGET_OS" ;;
+esac
+[ "$VER" = "$TARGET_OS" ] ||
+  fail "This payload targets $TARGET_OS; current OS is $VER."
 
 MODE=`awk -F= '$1=="mode" {print $2}' "$MANIFEST"`
 [ "$MODE" = additive-only ] || fail "Manifest is not additive-only."

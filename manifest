@@ -1,4 +1,4 @@
-# Placeholder manifest. `build-payload.command` replaces it after validating a user-owned font.
+# Placeholder manifest. `build-payload.command` replaces it after validating user-owned fonts.
 format=emoji26-additions-manifest-v1
 payload_version=0.2.0
 mode=additive-only
@@ -9,6 +9,6 @@ additions_font_sha256=UNBUILT
 additions_font_bytes=0
 system_font_replacement=false
 zwj_support=picker-only-until-legacy-renderer-is-proven
-target_os=10.8.5,10.9.5
+target_os=UNBUILT
 target_arch=x86_64
 created_utc=UNBUILT

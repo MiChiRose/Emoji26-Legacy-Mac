@@ -5,21 +5,27 @@ set -eu
 ROOT=`CDPATH= cd -- "$(dirname -- "$0")" && pwd`
 DONOR=""
 LEGACY=""
+TARGET_OS=""
 
 usage() {
-  echo "Usage: $0 --font /path/macOS26/Apple\\ Color\\ Emoji.ttc --legacy-font /path/legacy/Apple\\ Color\\ Emoji.ttf"
+  echo "Usage: $0 --font DONOR.ttc --legacy-font LEGACY.ttf --target-os VERSION"
 }
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --font) [ $# -ge 2 ] || { usage >&2; exit 64; }; DONOR=$2; shift 2 ;;
     --legacy-font) [ $# -ge 2 ] || { usage >&2; exit 64; }; LEGACY=$2; shift 2 ;;
+    --target-os) [ $# -ge 2 ] || { usage >&2; exit 64; }; TARGET_OS=$2; shift 2 ;;
     *) usage >&2; exit 64 ;;
   esac
 done
 
 [ -f "$DONOR" ] || { echo "Donor font not found: $DONOR" >&2; exit 66; }
 [ -f "$LEGACY" ] || { echo "Legacy font not found: $LEGACY" >&2; exit 66; }
+case "$TARGET_OS" in
+  10.8.5|10.9.5|10.10.5|10.11.6|10.12.6|10.13.6) ;;
+  *) echo "Unsupported target OS: $TARGET_OS" >&2; exit 65 ;;
+esac
 
 mkdir -p "$ROOT/build" "$ROOT/payload"
 cc "$ROOT/tools/cmap-diff.c" -o "$ROOT/build/cmap-diff"
@@ -57,7 +63,7 @@ FONT_BYTES=`wc -c < "$ROOT/payload/Emoji26 Additions.ttf" | tr -d ' '`
   echo "additions_font_bytes=$FONT_BYTES"
   echo "system_font_replacement=false"
   echo "zwj_support=picker-only-until-legacy-renderer-is-proven"
-  echo "target_os=10.8.5,10.9.5"
+  echo "target_os=$TARGET_OS"
   echo "target_arch=x86_64"
   echo "created_utc=`date -u +%Y-%m-%dT%H:%M:%SZ`"
 } > "$ROOT/manifest"

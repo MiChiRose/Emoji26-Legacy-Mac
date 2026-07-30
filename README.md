@@ -1,50 +1,125 @@
-# Emoji Legacy Patch (research-grade, reversible)
+# Emoji26 Legacy Mac
 
-Independent project for testing whether a user-owned modern `Apple Color Emoji.ttc` can work on **OS X 10.8.5/10.9.5, Intel x86_64**. It contains no Apple font binaries, no downloads, and never disables platform protections.
+Build a reversible, additive emoji package for Intel Macs running the final
+releases of OS X/macOS 10.8 through 10.13.
 
-Development now follows an **additive-only** design. The stock system emoji
-font is not replaced. `build-additions.command` compares the user-supplied
-macOS 26 `cmap` with the stock legacy font and produces only the missing
-code-point set. See the static
-[MavericksForever package review](research/MAVERICKSFOREVER.md).
+This repository contains source code only. It does **not** contain Apple Color
+Emoji, generated fonts, or a prebuilt installer. You build the package locally
+from fonts copied from macOS installations that you own.
 
-## Honest compatibility boundary
+[Русская инструкция](README-RU.md)
 
-The project does **not** claim macOS 26 compatibility until `build-payload.command` and `verify.command` pass on each target OS and a human records actual colored rendering. A modern TTC may use tables or bitmap encodings unreadable by old CoreText. The portable table audit reports `sbix`, `cmap`, and `GSUB`; the CoreText probe rejects a font whose required characters cannot be mapped. It is coverage evidence, not proof that old CoreText applies all GSUB/ZWJ substitutions.
+## What it does
 
-No lossless, legally redistributable general converter from Apple Color Emoji to a 10.8-compatible legacy format is included: conversion would require Apple glyph bitmaps and a validated target font compiler, and must be developed only after a target-machine failure proves the need. Do not claim flags, modifiers, ZWJ or VS16 support solely from a successful file replacement.
+The builder compares a user-supplied macOS 26 `Apple Color Emoji.ttc` with the
+stock Apple Color Emoji font from the target legacy OS. It produces a separately
+named `Emoji26 Additions.ttf` containing only safe, previously missing,
+single-code-point mappings.
 
-## Source and build
+Installation adds `/Library/Fonts/Emoji26 Additions.ttf`. It does not replace
+the system Apple Color Emoji font and does not modify Character Palette. A small
+AppKit picker is included because old Character Palette databases do not know
+the new characters.
 
-Use only fonts copied from macOS installations you own:
+## Compatibility status
 
-`./build-payload.command --font "/Volumes/Your macOS 26/System/Library/Fonts/Apple Color Emoji.ttc" --legacy-font "/path/to/stock/Apple Color Emoji.ttf"`
+| Target | Status |
+| --- | --- |
+| OS X 10.9.5, Intel x86_64 | CoreText process-local loading and color `sbix` rendering confirmed on a real Mac |
+| OS X 10.8.5 | Build target available; installation and rendering not yet verified |
+| OS X 10.10.5–10.13.6 | Build targets available; installation and rendering not yet verified |
 
-The command computes only code points absent from the stock legacy font. It
-does not copy the full donor TTC into payload. Third-party mirrors are rejected
-by policy.
+“Build target available” is not a claim that rendering works. Each generated
+package is locked to one exact OS version and refuses installation elsewhere.
+See the [Mavericks test record](research/TEST-MAVERICKS-10.9.5.md).
 
-The native builder extracts the first donor face, replaces `cmap` and `name`,
-keeps `sbix`, and emits a separately named `Emoji26 Additions.ttf`. CoreText
-then verifies representative new glyphs and confirms that legacy U+1F600 is
-not exposed by the supplemental font.
+Confirmed on 10.9.5: the supplemental font loaded in CoreText and rendered
+`U+1FAE8`, `U+1FAE9`, and `U+1FA8A` in color without installation. System-wide
+fallback after installation, reboot behavior, and uninstall still require
+human testing.
 
-`build-pkg.command` produces one private local installer containing the
-supplemental font, x86_64 verifier, and AppKit picker. Because that package
-contains derived Apple glyph data, it must not be committed or published.
+## Requirements
 
-A process-local test on real OS X 10.9.5 confirmed CoreText loading and color
-`sbix` rendering for three representative additions without installing the
-font. See [the Mavericks smoke-test record](research/TEST-MAVERICKS-10.9.5.md).
+- A modern Mac with Xcode Command Line Tools for building.
+- A user-owned macOS 26 `Apple Color Emoji.ttc`, copied from an installed system
+  or an official Apple installer.
+- The unmodified stock Apple Color Emoji font from the exact target OS.
+- An Intel x86_64 target Mac running one of:
+  `10.8.5`, `10.9.5`, `10.10.5`, `10.11.6`, `10.12.6`, or `10.13.6`.
 
-Run `./uninstall.command` and type `RESTORE` to roll back. Restart afterward rather than deleting caches.
+Do not use third-party font mirrors or unknown binaries.
 
-## Picker and Mavericks research
+## Build
 
-`build-picker.command` builds a tiny 10.8-compatible AppKit picker that copies a selected test emoji to the pasteboard. It is the safe fallback until 10.8 Character Palette paths are captured read-only on a real system.
+Example for Mavericks 10.9.5:
 
-For 10.9, inspect (read-only first) `/System/Library/Input Methods/CharacterPalette.app/Contents/Resources/`, including `Category-Emoji.plist`, `CharacterDB.sqlite3`, and localized resources. This project intentionally does not modify them: those database/schema changes need separately versioned, real-Mavericks validation. The original research reports that Mavericks can lack skin-tone UI and that picker search has limitations; use it as investigation input, not as an installable payload: [Updated Mavericks Emojis](https://github.com/Wowfunhappy/Updated-Mavericks-Emojis).
+```sh
+./build-payload.command \
+  --font "/Volumes/macOS 26/System/Library/Fonts/Apple Color Emoji.ttc" \
+  --legacy-font "/path/to/stock-10.9.5/Apple Color Emoji.ttf" \
+  --target-os 10.9.5
 
-## Test record required
+./build-pkg.command
+```
 
-For **each** 10.8.5 and 10.9.5, save the OS build, donor font SHA-256, table audit, probe result, and a visual result for `🫨`, `👍🏽`, `🇺🇦`, `👨‍👩‍👧`, `👩‍⚕️`, `❤️` in TextEdit. Also launch the appropriate picker and verify no crash. A clean install alone is not a pass.
+The result is
+`dist/Emoji26-Additions-0.2.0-macos10.9.5.pkg`. It contains derived Apple glyph
+data and is for your own machines only: do not publish, upload, or commit it.
+
+Before installation, keep a copy of the generated `manifest`; it records the
+target OS, build mode, byte size, and SHA-256 digest.
+
+## Install, verify, and uninstall
+
+Open the locally built `.pkg` on the matching legacy Mac. The installer verifies
+the exact OS version, x86_64 architecture, payload digest, available space, and
+backs up any older copy of this project's supplemental font. It leaves system
+Apple fonts and Character Palette unchanged.
+
+After restarting, run the installed verifier:
+
+```sh
+"/Applications/Emoji 26 Additions/verify.command"
+```
+
+Then visually test the picker and TextEdit. To remove the patch:
+
+```sh
+"/Applications/Emoji 26 Additions/uninstall.command"
+```
+
+Type the requested confirmation and restart. The rollback touches only this
+project's supplemental font.
+
+## Rendering limits
+
+The current safe payload deliberately excludes ZWJ, variation-selector, skin
+tone, regional-indicator, tag, keycap, and existing legacy mappings. Therefore
+it does **not** claim new flags, skin-tone combinations, family/profession ZWJ
+sequences, or VS15/VS16 behavior. The picker can copy strings, but copying a
+sequence is not proof that old AppKit can render it.
+
+The native audit covers `cmap`, `sbix`, and `GSUB`. Old CoreText behavior must
+still be visually verified on every target version. A successful installation
+alone is not a rendering pass.
+
+## Safety and provenance
+
+- No network downloads or `curl | sh`.
+- No replacement of `/System/Library/Fonts/Apple Color Emoji.ttf`.
+- No Character Palette database edits.
+- No disabling system protections.
+- Exact paths only; no recursive deletion or broad globs.
+- Local package generation only; Apple font binaries are Git-ignored.
+
+The design was informed by a static review of
+[Updated Mavericks Emojis](https://github.com/Wowfunhappy/Updated-Mavericks-Emojis)
+and its MavericksForever package. This implementation intentionally uses a
+different additive, reversible model. See
+[research/MAVERICKSFOREVER.md](research/MAVERICKSFOREVER.md).
+
+## License
+
+Project source code is available under the MIT License. Apple Color Emoji,
+Apple glyph artwork, macOS, and related marks belong to Apple Inc. and are not
+licensed or distributed by this repository. See [NOTICE.md](NOTICE.md).
