@@ -33,6 +33,10 @@ not exposed by the supplemental font.
 supplemental font, x86_64 verifier, and AppKit picker. Because that package
 contains derived Apple glyph data, it must not be committed or published.
 
+A process-local test on real OS X 10.9.5 confirmed CoreText loading and color
+`sbix` rendering for three representative additions without installing the
+font. See [the Mavericks smoke-test record](research/TEST-MAVERICKS-10.9.5.md).
+
 Run `./uninstall.command` and type `RESTORE` to roll back. Restart afterward rather than deleting caches.
 
 ## Picker and Mavericks research
