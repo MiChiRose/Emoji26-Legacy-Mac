@@ -2,6 +2,12 @@
 
 Это самостоятельный проект, не связанный с Telegraphica. Он не содержит и не скачивает `Apple Color Emoji.ttc` — шрифт остаётся только у владельца macOS 26.
 
+Текущий режим разработки — **additive-only**: штатный
+`/System/Library/Fonts/Apple Color Emoji.ttf` не заменяется. Инструмент
+`build-additions.command` сравнивает `cmap` пользовательского шрифта macOS 26
+со штатным шрифтом старой ОС и формирует список только отсутствующих code
+points. Полный TTC MavericksForever не используется как payload.
+
 ## Важное ограничение
 
 Пока тесты не выполнены **отдельно** на OS X 10.8.5 и 10.9.5 (Intel), проект не заявляет поддержку эмодзи macOS 26. Старый CoreText может не прочитать формат современного TTC или не применить GSUB/ZWJ-лигатуры. Скрипт анализирует `sbix`, `cmap`, `GSUB` и перед установкой запускает CoreText-проверку одиночного символа, tone modifier, флага, семейной и профессиональной ZWJ-последовательностей и VS16. Это проверка покрытия, но не замена визуального теста.
@@ -9,16 +15,19 @@
 ## Порядок работы на тестовом Mac
 
 1. Только read-only: зафиксируйте `sw_vers`, `uname -m`, пути Character Palette и результаты `./verify.command`.
-2. Получите шрифт исключительно с собственного тома macOS 26: `./build-payload.command --font "/Volumes/Имя/System/Library/Fonts/Apple Color Emoji.ttc"`. Допустим также официально полученный установщик Apple, смонтированный пользователем. Зеркала и неизвестные бинарники запрещены.
-3. Выполните `./verify.command`. Если он не проходит, **не устанавливайте**. Сначала документируйте таблицы и ошибку CoreText; воспроизводимый конвертер возможен только после такой диагностики и отдельной валидации формата на обоих старых OS.
-4. Только после вашего осознанного подтверждения запустите `./install.command` и введите `INSTALL`. Скрипт изменяет ровно один файл — `/System/Library/Fonts/Apple Color Emoji.ttc`; до этого проверяет ОС, x86_64, хэш, место, делает резервную копию с SHA-256/owner/group/mode и заменяет файл атомарным `mv`.
+2. Получите donor исключительно с собственного тома macOS 26 и штатный legacy font с принадлежащей вам старой ОС. Выполните `./build-payload.command --font "/Volumes/Имя/System/Library/Fonts/Apple Color Emoji.ttc" --legacy-font "/путь/Apple Color Emoji.ttf"`. Полный donor TTC в payload не копируется. Зеркала и неизвестные бинарники запрещены.
+3. Сборка вычисляет только отсутствующие code points. Пока отдельный `Emoji26 Additions.ttf` не построен и не прошёл CoreText-проверку, установка заблокирована.
+4. После валидации запустите `./install.command` и введите `ADDITIONS`. Скрипт устанавливает только `/Library/Fonts/Emoji26 Additions.ttf`; системный Apple font и Character Palette не изменяются.
 5. Перезагрузите Mac и вручную проверьте в TextEdit: `🫨`, `👍🏽`, `🇺🇦`, `👨‍👩‍👧`, `👩‍⚕️`, `❤️`. Убедитесь, что TextEdit и Character Palette не падают. Успешная установка не равна успешному рендерингу.
-6. Откат: `./uninstall.command`, введите `RESTORE`, затем перезагрузите. Скрипт не удаляет cache-каталоги.
+6. Откат: `./uninstall.command`, введите `REMOVE-ADDITIONS`, затем перезагрузите. Скрипт не удаляет cache-каталоги и не трогает Apple font.
 
 ## Character Palette
 
 На Mavericks сначала только просмотрите `/System/Library/Input Methods/CharacterPalette.app/Contents/Resources/`: `Category-Emoji.plist`, `CharacterDB.sqlite3` и локализованные ресурсы. Их автоматическое изменение намеренно отсутствует: схема и поведение должны быть подтверждены на 10.9.5. На Mountain Lion пути сначала выявляются read-only на реальной машине; до этого доступен лёгкий отдельный picker: `./build-picker.command` (копирует выбранный символ в буфер).
 
 Исходная исследовательская работа: [Updated Mavericks Emojis](https://github.com/Wowfunhappy/Updated-Mavericks-Emojis). По сообщениям автора, старый Mavericks picker имеет ограничения для tone variants и поиска; это нельзя выдавать за полную поддержку.
+
+Статический разбор пакета MavericksForever и отличия принятого здесь подхода:
+[`research/MAVERICKSFOREVER.md`](research/MAVERICKSFOREVER.md).
 
 `build-pkg.command` может собрать локальный `.pkg` только после локальной сборки payload; перед публикацией проверьте пакет и исключите шрифт из репозитория/архива исходников.

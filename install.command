@@ -1,26 +1,83 @@
 #!/bin/sh
+# Installs only a separately named supplemental font. Never replaces Apple fonts.
 set -eu
+
 ROOT=`CDPATH= cd -- "$(dirname -- "$0")" && pwd`
-FONT="$ROOT/payload/Apple Color Emoji.ttc"
+FONT="$ROOT/payload/Emoji26 Additions.ttf"
 MANIFEST="$ROOT/manifest"
-DEST="/System/Library/Fonts/Apple Color Emoji.ttc"
-BACKUP_ROOT="/Library/Application Support/EmojiLegacyPatch/backups"
-fail(){ echo "ERROR: $*" >&2; exit 1; }
+DEST="/Library/Fonts/Emoji26 Additions.ttf"
+STATE="/Library/Application Support/EmojiLegacyPatch"
+CONFIRMED=${1-}
+
+fail() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
 [ "`uname -m`" = x86_64 ] || fail "Intel x86_64 is required."
-VER=`sw_vers -productVersion`; case "$VER" in 10.8.5|10.9.5) ;; *) fail "Supported only on 10.8.5 or 10.9.5; found $VER";; esac
-[ -f "$FONT" ] && [ -f "$MANIFEST" ] || fail "Build payload and manifest first."
-EXPECTED=`awk -F= '$1=="font_sha256" {print $2}' "$MANIFEST"`; ACTUAL=`shasum -a 256 "$FONT" | awk '{print $1}'`; [ "$EXPECTED" = "$ACTUAL" ] || fail "Payload hash differs from manifest."
-[ -f "$DEST" ] || fail "System font not found: $DEST"
-NEEDED=`wc -c < "$FONT" | tr -d ' '`; FREE=`df -k /System | awk 'NR==2 {print $4*1024}'`; [ "$FREE" -gt "$NEEDED" ] || fail "Insufficient free space."
-echo "Planned changes:"; echo "  replace: $DEST"; echo "  backup:  $BACKUP_ROOT/<timestamp>/Apple Color Emoji.ttc"; echo "  manifest: $BACKUP_ROOT/<timestamp>/metadata.txt"; echo "  no Character Palette files are modified by this installer."
-printf "Type INSTALL to continue (or anything else to cancel): "; read answer; [ "$answer" = INSTALL ] || { echo "Cancelled."; exit 0; }
-[ "`id -u`" = 0 ] || exec sudo "$0"
-STAMP=`date +%Y%m%d-%H%M%S`; BACKUP="$BACKUP_ROOT/$STAMP"; mkdir -p "$BACKUP" || fail "Cannot create backup."
-{ echo "path=$DEST"; shasum -a 256 "$DEST"; stat -f 'owner=%Su group=%Sg mode=%Lp bytes=%z' "$DEST"; } > "$BACKUP/metadata.txt"
-cp -p "$DEST" "$BACKUP/Apple Color Emoji.ttc" || fail "Backup failed; no replacement made."
-TMP="$DEST.emoji-legacy-patch.$$"; trap 'rm -f "$TMP"' EXIT HUP INT TERM
-cp "$FONT" "$TMP" && chown root:wheel "$TMP" && chmod 644 "$TMP" || fail "Could not stage replacement."
-mv "$TMP" "$DEST" || fail "Atomic rename failed; original backup preserved."
+VER=`sw_vers -productVersion`
+case "$VER" in
+  10.8.5|10.9.5) ;;
+  *) fail "Supported only on 10.8.5 or 10.9.5; found $VER" ;;
+esac
+
+[ -f "$FONT" ] || fail "Additive font is not built: $FONT"
+[ -f "$MANIFEST" ] || fail "Manifest is missing."
+
+MODE=`awk -F= '$1=="mode" {print $2}' "$MANIFEST"`
+[ "$MODE" = additive-only ] || fail "Manifest is not additive-only."
+
+EXPECTED=`awk -F= '$1=="additions_font_sha256" {print $2}' "$MANIFEST"`
+[ -n "$EXPECTED" ] && [ "$EXPECTED" != UNBUILT ] ||
+  fail "Manifest has no validated additive-font hash."
+ACTUAL=`shasum -a 256 "$FONT" | awk '{print $1}'`
+[ "$EXPECTED" = "$ACTUAL" ] || fail "Payload hash differs from manifest."
+
+NEEDED=`wc -c < "$FONT" | tr -d ' '`
+FREE=`df -k /Library | awk 'NR==2 {print $4*1024}'`
+[ "$FREE" -gt "$NEEDED" ] || fail "Insufficient free space."
+
+if [ "$CONFIRMED" != --confirmed ]; then
+  echo "Planned changes:"
+  echo "  install: $DEST"
+  echo "  state:   $STATE"
+  echo "  unchanged: /System/Library/Fonts/Apple Color Emoji.ttf"
+  echo "  unchanged: /System/Library/Input Methods/CharacterPalette.app"
+  printf "Type ADDITIONS to continue (or anything else to cancel): "
+  read answer
+  [ "$answer" = ADDITIONS ] || { echo "Cancelled."; exit 0; }
+  [ "`id -u`" = 0 ] || exec sudo "$0" --confirmed
+fi
+
+[ "`id -u`" = 0 ] || fail "Root privileges were not obtained."
+STAMP=`date +%Y%m%d-%H%M%S`
+BACKUP="$STATE/backups/$STAMP"
+mkdir -p "$BACKUP" || fail "Cannot create state directory."
+
+if [ -f "$DEST" ]; then
+  {
+    echo "previous=present"
+    echo "path=$DEST"
+    shasum -a 256 "$DEST"
+    stat -f 'owner=%Su group=%Sg mode=%Lp bytes=%z' "$DEST"
+  } > "$BACKUP/metadata.txt"
+  cp -p "$DEST" "$BACKUP/Emoji26 Additions.ttf" ||
+    fail "Existing supplemental-font backup failed."
+else
+  {
+    echo "previous=absent"
+    echo "path=$DEST"
+  } > "$BACKUP/metadata.txt"
+fi
+
+TMP="/Library/Fonts/.Emoji26-Additions.$$"
+trap 'rm -f "$TMP"' EXIT HUP INT TERM
+cp "$FONT" "$TMP" &&
+  chown root:wheel "$TMP" &&
+  chmod 644 "$TMP" ||
+  fail "Could not stage supplemental font."
+mv "$TMP" "$DEST" || fail "Atomic installation rename failed."
 trap - EXIT HUP INT TERM
-echo "$STAMP" > "/Library/Application Support/EmojiLegacyPatch/current-backup"
-echo "Installed. Restart before judging rendering; then run verify.command."
+
+echo "$STAMP" > "$STATE/current-backup"
+echo "Installed additive font only. Restart, then run verify.command."
