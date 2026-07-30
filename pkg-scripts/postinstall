@@ -20,9 +20,7 @@ if [ -z "$EXPECTED" ] || [ "$EXPECTED" != "$ACTUAL" ]; then
   PREVIOUS=`awk -F= '$1=="previous" {print $2}' "$BACKUP/metadata.txt"`
   if [ "$PREVIOUS" = present ]; then
     TMP="/Library/Fonts/.Emoji26-Package-Rollback.$$"
-    cp "$BACKUP/Emoji26 Additions.ttf" "$TMP"
-    chown root:wheel "$TMP"
-    chmod 644 "$TMP"
+    cp -p "$BACKUP/Emoji26 Additions.ttf" "$TMP"
     mv "$TMP" "$DEST"
   else
     mv "$DEST" "$BACKUP/rejected-Emoji26-Additions.ttf"

@@ -2,7 +2,17 @@
 set -eu
 ROOT=`CDPATH= cd -- "$(dirname -- "$0")" && pwd`; FONT=/Library/Fonts/Emoji26\ Additions.ttf
 [ "`uname -m`" = x86_64 ] || { echo "FAIL: not x86_64"; exit 1; }
-case "`sw_vers -productVersion`" in 10.8.5|10.9.5) ;; *) echo "FAIL: unsupported OS"; exit 1;; esac
+[ -f "$ROOT/manifest" ] || { echo "FAIL: manifest absent"; exit 1; }
+TARGET_OS=`awk -F= '$1=="target_os" {print $2}' "$ROOT/manifest"`
+CURRENT_OS=`sw_vers -productVersion`
+case "$TARGET_OS" in
+  10.8.5|10.9.5|10.10.5|10.11.6|10.12.6|10.13.6) ;;
+  *) echo "FAIL: unsupported target in manifest"; exit 1 ;;
+esac
+[ "$CURRENT_OS" = "$TARGET_OS" ] || {
+  echo "FAIL: package targets $TARGET_OS, current OS is $CURRENT_OS"
+  exit 1
+}
 [ -f "$FONT" ] || { echo "FAIL: font absent"; exit 1; }
 if [ -x "$ROOT/bin/ctprobe" ]; then
   PROBE="$ROOT/bin/ctprobe"
@@ -15,7 +25,7 @@ fi
 echo "CoreText additive-font check passed for U+1FAE8, U+1FAE9 and U+1FA8A."
 echo "The supplemental font correctly excludes legacy U+1F600."
 open -a TextEdit || { echo "FAIL: TextEdit did not launch"; exit 1; }
-if [ "`sw_vers -productVersion`" = 10.9.5 ]; then open -a CharacterPalette || echo "WARN: launch Character Palette manually"; fi
+if [ "$CURRENT_OS" = 10.9.5 ]; then open -a CharacterPalette || echo "WARN: launch Character Palette manually"; fi
 if [ -d "$ROOT/Emoji26Picker.app" ]; then
   open "$ROOT/Emoji26Picker.app" || echo "WARN: launch Emoji26Picker manually"
 fi

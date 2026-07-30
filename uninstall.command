@@ -38,10 +38,8 @@ if [ "$PREVIOUS" = present ]; then
   [ -f "$SOURCE" ] || fail "Previous supplemental font backup is missing."
   TMP="/Library/Fonts/.Emoji26-Rollback.$$"
   trap 'rm -f "$TMP"' EXIT HUP INT TERM
-  cp "$SOURCE" "$TMP" &&
-    chown root:wheel "$TMP" &&
-    chmod 644 "$TMP" ||
-    fail "Could not stage rollback."
+  cp -p "$SOURCE" "$TMP" ||
+  fail "Could not stage rollback."
   mv "$TMP" "$DEST" || fail "Atomic rollback rename failed."
   trap - EXIT HUP INT TERM
 else
