@@ -71,13 +71,13 @@ find "$PKGROOT" -name '._*' -type f -delete
 
 pkgbuild \
   --identifier org.emoji-legacy-patch.additions \
-  --version 0.2.0 \
+  --version 0.2.1 \
   --root "$PKGROOT" \
   --scripts "$GENERATED_SCRIPTS" \
   --ownership recommended \
   --filter '(^|/)(\._.*|\.DS_Store|\.svn|CVS)(/|$)' \
   --install-location / \
-  "$DIST/Emoji26-Additions-0.2.0-macos$TARGET_OS.pkg"
+  "$DIST/Emoji26-Additions-0.2.1-macos$TARGET_OS.pkg"
 
-echo "Built private local package: $DIST/Emoji26-Additions-0.2.0-macos$TARGET_OS.pkg"
+echo "Built private local package: $DIST/Emoji26-Additions-0.2.1-macos$TARGET_OS.pkg"
 echo "It contains derived Apple glyph data; do not publish or commit it."
