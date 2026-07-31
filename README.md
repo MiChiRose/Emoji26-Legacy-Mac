@@ -49,24 +49,32 @@ human testing.
 
 Do not use third-party font mirrors or unknown binaries.
 
-## Easiest path: downloadable builder
+## Easiest path: two double-clicks
 
-Download `Emoji26-Installer-Builder-0.2.0-alpha.1.zip` from the GitHub
-prerelease, unpack it, and double-click `Make Emoji Installer.command`.
+Download `Emoji26-Installer-Builder-0.2.1-alpha.2.zip` from the GitHub
+prerelease and unpack it. See `START-HERE.txt` for the short checklist.
+
+1. Copy `Export Legacy Font.command` to the old Mac and double-click it. After
+   checking the exact OS version and x86_64 architecture, it creates an
+   `Emoji Legacy Source-...` folder on the Desktop. It reads the stock system
+   font but changes nothing.
+2. Move that entire folder to the modern Mac.
+3. Double-click `Make Emoji Installer.command` and choose the exported folder.
+   The target OS and its stock font are detected automatically.
+4. The personal `.pkg` and its SHA-256 file appear directly on the Desktop.
+
+On macOS 26 the installed Apple Color Emoji donor is detected automatically.
+macOS 11–25 can run the builder but does not contain the macOS 26 repertoire,
+so the builder asks for `Apple Color Emoji.ttc` from a macOS 26 installation
+that you own.
+
 If Gatekeeper shows a warning for the unsigned research build, Control-click
 the command, choose **Open**, and confirm only if the downloaded ZIP checksum
 matches the accompanying `.sha256` asset.
 
-The builder asks for:
-
-1. Your macOS 26 `Apple Color Emoji.ttc`.
-2. The untouched stock Apple Color Emoji font from the exact old target OS.
-3. The exact target OS version.
-
-It then creates a personal `.pkg` locally and reveals it in Finder. The
-download contains only this project's open-source code and compiled tools. It
-contains no Apple fonts, performs no upload, and installs nothing on the build
-Mac. Xcode, Python, and Homebrew are not required for the downloadable builder.
+The download contains only this project's open-source code and compiled tools.
+It contains no Apple fonts and performs no upload. Xcode, Python, Homebrew, and
+Terminal commands are not required for the downloadable builder.
 
 The resulting personal `.pkg` does contain derived Apple glyph data. Keep it
 for your own machines and do not redistribute it.
@@ -87,7 +95,7 @@ Example for Mavericks 10.9.5:
 Building directly from a Git checkout requires Xcode Command Line Tools.
 
 The result is
-`dist/Emoji26-Additions-0.2.0-macos10.9.5.pkg`. It contains derived Apple glyph
+`dist/Emoji26-Additions-0.2.1-macos10.9.5.pkg`. It contains derived Apple glyph
 data and is for your own machines only: do not publish, upload, or commit it.
 
 Before installation, keep a copy of the generated `manifest`; it records the

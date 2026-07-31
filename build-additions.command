@@ -68,7 +68,7 @@ FONT_BYTES=`wc -c < "$ROOT/payload/Emoji26 Additions.ttf" | tr -d ' '`
 
 {
   echo "format=emoji26-additions-manifest-v1"
-  echo "payload_version=0.2.0"
+  echo "payload_version=0.2.1"
   echo "mode=additive-only"
   echo "donor_sha256=$DONOR_SHA"
   echo "legacy_sha256=$LEGACY_SHA"

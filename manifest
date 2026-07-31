@@ -1,6 +1,6 @@
 # Placeholder manifest. `build-payload.command` replaces it after validating user-owned fonts.
 format=emoji26-additions-manifest-v1
-payload_version=0.2.0
+payload_version=0.2.1
 mode=additive-only
 donor_sha256=UNBUILT
 legacy_sha256=UNBUILT

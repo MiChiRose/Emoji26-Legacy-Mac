@@ -3,7 +3,7 @@
 set -eu
 
 ROOT=`CDPATH= cd -- "$(dirname -- "$0")" && pwd`
-VERSION="0.2.0-alpha.1"
+VERSION="0.2.1-alpha.2"
 WORK="$ROOT/build/bootstrap-release"
 STAGE="$WORK/Emoji26 Installer Builder"
 HOST_BIN="$STAGE/prebuilt/host"
@@ -50,10 +50,11 @@ done
 
 for file in \
   "Make Emoji Installer.command" \
+  "Export Legacy Font.command" \
   build-payload.command build-additions.command build-picker.command \
   build-pkg.command install.command uninstall.command verify.command \
   manifest manifest.template EmojiPicker.m README.md README-RU.md \
-  LICENSE NOTICE.md; do
+  START-HERE.txt START-HERE-RU.txt LICENSE NOTICE.md; do
   cp "$ROOT/$file" "$STAGE/$file"
 done
 
@@ -69,7 +70,7 @@ chmod 755 "$STAGE/"*.command "$STAGE/tools/emoji-table-audit.sh" \
   "$HOST_BIN"/* "$TARGET_BIN"/* "$STAGE/pkg-scripts/"*
 chmod 644 "$STAGE/"*.md "$STAGE/LICENSE" "$STAGE/manifest" \
   "$STAGE/manifest.template" "$STAGE/EmojiPicker.m" "$STAGE/tools/"*.c \
-  "$STAGE/tools/ctprobe.m" "$STAGE/picker/Info.plist"
+  "$STAGE/tools/ctprobe.m" "$STAGE/picker/Info.plist" "$STAGE/"*.txt
 
 find "$STAGE" -name '._*' -type f -delete
 rm -f "$ZIP"

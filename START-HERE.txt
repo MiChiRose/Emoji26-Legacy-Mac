@@ -1,0 +1,25 @@
+EMOJI26 LEGACY MAC — QUICK START
+================================
+
+You need your old Intel Mac and a modern Mac running macOS 11 or newer.
+
+1. On the old Mac
+   Copy "Export Legacy Font.command" there and double-click it.
+   An "Emoji Legacy Source-..." folder appears on the Desktop.
+   The helper only copies the stock font for local comparison. It does not
+   modify the system.
+
+2. On the modern Mac
+   Copy the entire "Emoji Legacy Source-..." folder back.
+   Double-click "Make Emoji Installer.command" and select that folder.
+
+   On macOS 26 the installed donor font is detected automatically. On
+   macOS 11–25 the builder asks for Apple Color Emoji.ttc from a macOS 26
+   installation that you own.
+
+3. Done
+   Your personal .pkg and its SHA-256 file appear on the modern Mac Desktop.
+   Move the .pkg to the old Mac and read README.md before installing it.
+
+No font is uploaded. Do not redistribute the generated .pkg: it contains
+derived Apple glyph data.
