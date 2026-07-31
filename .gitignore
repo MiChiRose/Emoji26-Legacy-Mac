@@ -1,9 +1,17 @@
-payload/Apple Color Emoji.ttc
-payload/Emoji26 Additions.ttf
-payload/emoji26-additions.txt
-payload/CharacterPalette/
+*.dmg
+*.otf
+*.pkg
+*.sqlite3
+*.ttc
+*.ttf
+*.zip
+*.zip.sha256
+._*
+.AppleDouble
+.DS_Store
+
+payload/
 payload-full/
 build/
 dist/
 prebuilt/
-.DS_Store
